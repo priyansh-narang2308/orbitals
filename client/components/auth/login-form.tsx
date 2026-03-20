@@ -2,15 +2,33 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card"
 import { Button } from "../ui/button"
 import { authClient } from "@/lib/auth-client"
 import { Loader2 } from "lucide-react"
+import { Loader } from "../ui/loader"
 
 const LoginForm = () => {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
+    const { data: session, isPending } = authClient.useSession()
+
+    useEffect(() => {
+        if (session) {
+            router.push("/")
+        } 
+    }, [session, router])
+
+    if (isPending || session) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4 animate-in fade-in duration-500">
+                <Loader />
+                <p className="text-sm font-medium text-muted-foreground animate-pulse">Syncing your orbits...</p>
+            </div>
+        )
+    }
+
 
     const handleGithubLogin = async () => {
         try {
