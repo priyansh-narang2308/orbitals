@@ -13,6 +13,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Orbitals CLI",
   description: "An agent in your CLI to help you code",
+  icons:{
+    icon:'/logo.png'
+  }
 };
 
 export default function RootLayout({
