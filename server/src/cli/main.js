@@ -3,7 +3,9 @@
 import dotenv from "dotenv";
 import chalk from "chalk";
 import figlet from "figlet";
+import gradient from "gradient-string";
 import { Command } from "commander";
+
 import { login } from "./commands/auth/login.js";
 import { logout } from "./commands/auth/logout.js";
 import { whoami } from "./commands/auth/whoami.js";
@@ -14,8 +16,8 @@ async function main() {
     const program = new Command("orbital");
 
     program
-        .version("1.0.0")
-        .description("Orbit CLI - Device Flow Authentication")
+        .version("1.0.0", "-v, --version", "Show Orbital CLI version")
+        .description("AI-powered developer assistant for your terminal");
 
     program.configureHelp({
         styleTitle: (text) => chalk.bold.cyan(text),
@@ -23,44 +25,53 @@ async function main() {
         styleOptionTerm: (text) => chalk.yellow(text),
         styleSubcommandTerm: (text) => chalk.bold.greenBright(text),
         styleDescriptionText: (text) => chalk.gray(text),
+        styleCommandDescription: (text) => chalk.gray(text),
     });
 
-    // program.addCommand(wakeUp);
+    // program.addCommand(wakeup)
     program.addCommand(login);
     program.addCommand(logout);
     program.addCommand(whoami);
 
     program.action(() => {
+        const banner = figlet.textSync("Orbital", {
+            font: "ANSI Shadow",
+            horizontalLayout: "default",
+            verticalLayout: "default",
+        });
+
+        console.log(gradient.cristal.multiline(banner));
+
         console.log(
-            chalk.cyan(
-                figlet.textSync("Orbital CLI", {
-                    font: "Standard",
-                    horizontalLayout: "default",
-                    verticalLayout: "default",
-                    width: 80,
-                    whitespaceBreak: false,
-                })
-            )
+            chalk.yellow(`
+AI-powered developer assistant for the terminal.
+
+    • Generate code and scripts
+    • Explain complex codebases
+    • Debug errors instantly
+`)
         );
 
         console.log(
-            chalk.gray(`
-A powerful AI-powered developer assistant built for the terminal.
-
-Orbital CLI helps you interact with AI directly from your command line to:
-• generate code and scripts
-• explain complex codebases
-• debug errors instantly
-
-`) + chalk.gray("Type ") + chalk.cyan("orbital --help") + chalk.gray(" to view all commands.\n")
+            chalk.gray("Run ") +
+            chalk.cyan("orbital --help") +
+            chalk.gray(" to explore available commands.\n")
         );
-        program.help();
+
+        console.log(chalk.gray("────────────────────────────────────────\n"));
+
+        program.help({ error: false });
     });
 
     program.parse();
+
 }
 
 main().catch((error) => {
-    console.error(chalk.red("Error running Orbital CLI. Please try again later."), error);
+    console.error(
+        chalk.red.bold("Orbital CLI failed to start."),
+        chalk.gray("\nPlease try again or check your configuration.\n")
+    );
+    console.error(chalk.gray(error));
     process.exit(1);
 });
