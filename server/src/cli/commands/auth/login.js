@@ -4,7 +4,6 @@ import { createAuthClient } from "better-auth/client";
 import { deviceAuthorizationClient } from "better-auth/client/plugins";
 import chalk from "chalk";
 import { Command } from "commander";
-import fs from "fs/promises";
 import open from "open";
 import os from "os";
 import path from "path";
@@ -12,7 +11,7 @@ import yoctoSpinner from "yocto-spinner";
 import * as z from "zod/v4";
 import dotenv from "dotenv";
 import prisma from "../../../lib/db.js";
-import { clearStoredToken, getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.js";
+import { getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.js";
 
 dotenv.config();
 
@@ -21,27 +20,6 @@ export const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 export const CONFIG_DIR = path.join(os.homedir(), ".better-auth");
 export const TOKEN_FILE = path.join(CONFIG_DIR, "token.json");
 
-
-export async function requireAuth() {
-    const token = await getStoredToken();
-
-    if (!token) {
-        console.log(
-            chalk.red("Not authenticated. Please run 'orbital login' first.")
-        );
-        process.exit(1);
-    }
-
-    if (await isTokenExpired()) {
-        console.log(
-            chalk.yellow("Your session has expired. Please login again.")
-        );
-        console.log(chalk.gray("Run: orbital login\n"));
-        process.exit(1);
-    }
-
-    return token;
-}
 
 // LOGIN Command
 export async function loginAction(opts) {
@@ -170,18 +148,23 @@ export async function loginAction(opts) {
                     chalk.yellow("You may need to login again on next use.")
                 );
             }
-            const { data: session } = await authClient.getSession({
-                fetchOptions: {
-                    headers: {
-                        Authorization: `Bearer ${token.access_token}`,
+            const user = await prisma.user.findFirst({
+                where: {
+                    sessions: {
+                        some: {
+                            token: token.access_token,
+                        },
                     },
                 },
+                select: {
+                    name: true,
+                    email: true
+                }
             });
 
             outro(
                 chalk.green(
-                    `✅ Login successful! Welcome ${session?.user?.name || session?.user?.email || "User"
-                    }`
+                    `Login successful! Welcome ${user?.name || user?.email || "User"}- Orbital is now at your command.`
                 )
             );
 
@@ -226,7 +209,7 @@ async function pollForToken(authClient, deviceCode, clientId, initialInterval) {
 
                 if (data?.access_token) {
                     console.log(
-                        chalk.bold.yellow(`Your access token: ${data.access_token}`)
+                        chalk.bold.yellow(`\nYour access token: ${data.access_token}`)
                     );
                     spinner.stop();
                     resolve(data);
@@ -267,79 +250,9 @@ async function pollForToken(authClient, deviceCode, clientId, initialInterval) {
     });
 }
 
-// LOGOUT Command
-export async function logoutAction() {
-    intro(chalk.bold("Logout"));
-
-    const token = await getStoredToken();
-
-    if (!token) {
-        console.log(chalk.yellow("You're not logged in."));
-        process.exit(0);
-    }
-
-    const shouldLogout = await confirm({
-        message: "Are you sure you want to logout?",
-        initialValue: false,
-    });
-
-    if (isCancel(shouldLogout) || !shouldLogout) {
-        cancel("Logout cancelled");
-        process.exit(0);
-    }
-
-    const cleared = await clearStoredToken();
-
-    if (cleared) {
-        outro(chalk.green("✅ Successfully logged out!"));
-    } else {
-        console.log(chalk.yellow("⚠️  Could not clear token file."));
-    }
-}
-
-// WhoAmI
-export async function whoamiAction(opts) {
-    const token = await requireAuth();
-    if (!token?.access_token) {
-        console.log("No access token found. Please login.");
-        process.exit(1);
-    }
-
-    const user = await prisma.user.findFirst({
-        where: {
-            sessions: {
-                some: {
-                    token: token.access_token,
-                },
-            },
-        },
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-        },
-    });
-
-    console.log(
-        chalk.bold.greenBright(`\n👤 User: ${user.name}
-📧 Email: ${user.email}
-👤 ID: ${user.id}`)
-    );
-}
-
 // Commandar
 export const login = new Command("login")
     .description("Login to Orbital CLI")
     .option("--server-url <url>", "The Better Auth server URL", DEMO_URL)
     .option("--client-id <id>", "The OAuth client ID", CLIENT_ID)
     .action(loginAction);
-
-export const logout = new Command("logout")
-    .description("Logout and clear stored credentials")
-    .action(logoutAction);
-
-export const whoami = new Command("whoami")
-    .description("Show current authenticated user")
-    .option("--server-url <url>", "The Better Auth server URL", DEMO_URL)
-    .action(whoamiAction);

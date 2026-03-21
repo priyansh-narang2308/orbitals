@@ -1,4 +1,6 @@
+import chalk from "chalk";
 import { CONFIG_DIR, TOKEN_FILE } from "../cli/commands/auth/login.js";
+import fs from "fs/promises";
 
 export async function getStoredToken() {
     try {
@@ -53,4 +55,26 @@ export async function isTokenExpired() {
 
     // 5 mins time
     return expiresAt.getTime() - now.getTime() < 5 * 60 * 1000;
+}
+
+
+export async function requireAuth() {
+    const token = await getStoredToken();
+
+    if (!token) {
+        console.log(
+            chalk.red("Not authenticated. Please run 'orbital login' first.")
+        );
+        process.exit(1);
+    }
+
+    if (await isTokenExpired()) {
+        console.log(
+            chalk.yellow("Your session has expired. Please login again.")
+        );
+        console.log(chalk.gray("Run: orbital login\n"));
+        process.exit(1);
+    }
+
+    return token;
 }
