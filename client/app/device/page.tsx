@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
-import { ShieldAlert, Loader2, KeyRound } from "lucide-react"
-import { useState } from "react"
+import { ShieldAlert, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import {
     InputOTP,
@@ -11,11 +12,22 @@ import {
     InputOTPSlot,
     InputOTPSeparator,
 } from "@/components/ui/input-otp"
+import Image from "next/image"
+import { Loader } from "@/components/ui/loader"
 
 const DeviceAuthPage = () => {
+    const { data: session, isPending } = authClient.useSession();
+    const router = useRouter();
+
     const [userCode, setUserCode] = useState("")
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+
+    useEffect(() => {
+        if (!isPending && !session) {
+            router.push(`/sign-in?callbackURL=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        }
+    }, [session, isPending, router]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -39,6 +51,15 @@ const DeviceAuthPage = () => {
         }
     };
 
+    if (isPending || !session) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4 animate-in fade-in duration-500">
+                <Loader />
+                <p className="text-sm font-medium text-muted-foreground animate-pulse">Authenticating session...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-4 overflow-hidden bg-background">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -z-10" />
@@ -49,8 +70,14 @@ const DeviceAuthPage = () => {
                     <CardHeader className="relative pb-6 pt-10 flex flex-col items-center">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/30 rounded-full blur-2xl -z-10" />
 
-                        <div className="h-20 w-20 bg-background/50 border border-primary/20 shadow-xl rounded-full flex items-center justify-center mb-6 ring-1 ring-white/10 scale-105 transition-all duration-500 hover:scale-110">
-                            <ShieldAlert className="h-10 w-10 text-primary" />
+                        <div className="h-20 w-20 shadow-xl rounded-full flex items-center justify-center mb-6  transition-all duration-500 ">
+                            <Image
+                                src="/white.png"
+                                alt="Logo"
+                                width={100}
+                                height={100}
+                                className="h-full w-full object-contain"
+                            />
                         </div>
 
                         <div className="text-center space-y-2">

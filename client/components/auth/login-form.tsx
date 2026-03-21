@@ -16,8 +16,10 @@ const LoginForm = () => {
 
     useEffect(() => {
         if (session) {
-            router.push("/")
-        } 
+            const params = new URLSearchParams(window.location.search);
+            const callbackURL = params.get("callbackURL") || "/";
+            router.push(callbackURL);
+        }
     }, [session, router])
 
     if (isPending || session) {
@@ -33,9 +35,12 @@ const LoginForm = () => {
     const handleGithubLogin = async () => {
         try {
             setLoading(true)
+            const params = new URLSearchParams(window.location.search);
+            const callbackURL = params.get("callbackURL") || "http://localhost:3000";
+
             await authClient.signIn.social({
                 provider: "github",
-                callbackURL: "http://localhost:3000"
+                callbackURL: callbackURL.startsWith("http") ? callbackURL : `http://localhost:3000${callbackURL}`
             })
         } catch (error) {
             console.error("Login Error:", error)
