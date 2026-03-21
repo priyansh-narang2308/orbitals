@@ -11,10 +11,10 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
-  title: "Orbitals CLI",
-  description: "An agent in your CLI to help you code",
-  icons:{
-    icon:'/logo.png'
+  title: "Orbital CLI | The Autonomous Coding Agent",
+  description: "A high-performance AI coding agent that lives in your command line. Orbital understands your entire codebase, executes complex refactors, and automates the tedious bits of development so you can stay in flow.",
+  icons: {
+    icon: '/logo.png'
   }
 };
 

@@ -55,7 +55,7 @@ const LoginForm = () => {
                         <div className="p-3 rounded-2xl bg-primary/10 ring-1 ring-primary/20 backdrop-blur-sm">
                             <Image
                                 src="/logo.png"
-                                alt="Orbitals Logo"
+                                alt="Orbital Logo"
                                 height={48}
                                 width={48}
                                 className="dark:invert opacity-90 transition-transform group-hover:scale-110"
@@ -63,7 +63,7 @@ const LoginForm = () => {
                         </div>
                     </div>
                     <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl bg-linear-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
-                        Orbitals CLI
+                        Orbital CLI
                     </h1>
                     <p className="text-muted-foreground text-base max-w-[280px] mx-auto">
                         Connect your account to activate device flow and start building.

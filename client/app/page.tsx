@@ -97,14 +97,14 @@ const HomePage = () => {
                   variant="destructive"
                   className="w-full cursor-pointer h-12 text-sm text-white font-medium transition-all duration-200 flex items-center justify-center shadow-lg shadow-destructive/10"
                 >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign Out from Orbitals
+                  <LogOut className="mr-2 h-4 w-4" /> Sign Out from Orbital
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="bg-card/90 backdrop-blur-xl border-border/40 shadow-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Ending your session will disconnect your local environment from the Orbitals cloud.
+                    Ending your session will disconnect your local environment from the Orbital cloud.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
