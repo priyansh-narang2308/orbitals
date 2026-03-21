@@ -33,7 +33,7 @@ export async function loginAction(opts) {
     const serverUrl = options.serverUrl || DEMO_URL;
     const clientId = options.clientId || CLIENT_ID;
 
-    intro(chalk.bold("Orbital CLI Login"));
+    intro(chalk.magenta("Orbital CLI Login"));
 
     if (!clientId) {
         logger.error("CLIENT_ID is not set in .env file");
@@ -110,7 +110,7 @@ export async function loginAction(opts) {
         console.log(
             `Please visit: ${chalk.underline.blue(urlToOpen)}`
         );
-        console.log(`Enter code: ${chalk.bold.green(user_code)}`);
+        console.log(`Enter code: ${chalk.yellow.green(user_code)}`);
         console.log("");
 
         const shouldOpen = await confirm({
