@@ -59,6 +59,7 @@ const LoginForm = () => {
                     <div className="flex justify-center mb-6">
                         <div className="p-3 rounded-2xl bg-primary/10 ring-1 ring-primary/20 backdrop-blur-sm">
                             <Image
+                            loading="eager"
                                 src="/logo.png"
                                 alt="Orbital Logo"
                                 height={48}
