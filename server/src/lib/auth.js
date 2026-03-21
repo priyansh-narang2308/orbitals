@@ -17,6 +17,9 @@ export const auth = betterAuth({
         },
     },
     plugins: [
-        deviceAuthorization()
+        deviceAuthorization({
+            expiresIn: "30m",
+            interval: "5s"
+        })
     ]
 });

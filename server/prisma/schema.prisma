@@ -78,6 +78,7 @@ model Verification {
   @@map("verification")
 }
 
+
 model DeviceCode {
   id              String    @id
   deviceCode      String
