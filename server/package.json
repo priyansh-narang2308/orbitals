@@ -11,13 +11,23 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "bin": {
+    "orbital": "./src/cli/main.js"
+  },
   "dependencies": {
+    "@clack/prompts": "^1.1.0",
     "@prisma/client": "^6.19.0",
     "better-auth": "^1.5.5",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "prisma": "^6.19.0"
+    "figlet": "^1.11.0",
+    "open": "^11.0.0",
+    "prisma": "^6.19.0",
+    "yocto-spinner": "^1.1.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
