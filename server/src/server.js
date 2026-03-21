@@ -17,7 +17,7 @@ app.use(cors({
     credentials: true,
 }))
 
-app.use("/api/auth", toNodeHandler(auth));
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(express.json());
 
 // Using queries for redirecting
