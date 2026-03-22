@@ -50,17 +50,20 @@ const wakeupAction = async () => {
             ]
         });
 
-        // switch (choice) {
-        //     case "chat":
-        //         await startChat("chat");
-        //         break;
-        //     case "tool":
-        //         await startToolChat();
-        //         break;
-        //     case "agent":
-        //         await startAgentChat();
-        //         break;
-        // }
+        switch (choice) {
+            case "chat":
+                await startChat("chat");
+                break;
+            // case "tool":
+            //     await startToolChat();
+            //     break;
+            // case "agent":
+            //     await startAgentChat();
+            //     break;
+            default:
+                console.log(chalk.red("Invalid choice."));
+                break;
+        }
     } catch (error) {
         spinner.stop()
         console.log(chalk.red("Failed to fetch user profile."));
