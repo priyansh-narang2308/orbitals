@@ -89,12 +89,18 @@ const HomePage = () => {
 
 
           <CardFooter className="bg-muted/30 border-t border-border/10 px-8 py-8 flex flex-col gap-3">
-
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/history")}
+              className="w-full cursor-pointer h-12 text-sm font-medium transition-all duration-200 flex items-center justify-center shadow-lg border border-border/40 bg-yellow-400 text-black hover:bg-yellow-500 backdrop-blur-sm"
+            >
+              View Chat History
+            </Button>
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  variant="destructive"
+                   variant="destructive"
                   className="w-full cursor-pointer h-12 text-sm text-white font-medium transition-all duration-200 flex items-center justify-center shadow-lg shadow-destructive/10"
                 >
                   <LogOut className="mr-2 h-4 w-4" /> Sign Out from Orbital
