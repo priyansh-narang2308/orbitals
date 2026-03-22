@@ -239,7 +239,7 @@ export async function startChat(mode = "chat", conversationId = null) {
         process.stdout.write("\x1b[5 q");
 
         const title = gradient.cristal.multiline(`
-  Orbital AI
+  Orbital 
 `);
 
         const subtitle = chalk.green("Conversation Mode");

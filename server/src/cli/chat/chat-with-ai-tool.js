@@ -66,7 +66,7 @@ async function getUserFromToken() {
     return user;
 }
 
-async function selectTools() {
+async function selectTools(isSwitching = false) {
     const toolOptions = availableTools.map(tool => ({
         value: tool.id,
         label: tool.name,
@@ -81,6 +81,7 @@ async function selectTools() {
 
     if (isCancel(sleectedTools)) {
         cancel(chalk.yellow("Tool selection cancelled"));
+        if (isSwitching) return false;
         process.exit(0);
     }
 
@@ -109,7 +110,7 @@ async function selectTools() {
         );
         console.log(toolsBox);
     }
-    return sleectedTools.length > 0;
+    return true;
 }
 
 async function initConversation(userId, conversationId = null, mode = "tool") {
@@ -275,7 +276,7 @@ async function updateConversationTitle(conversationId, userInput, messageCount) 
 async function chatLoop(conversation) {
     const enabledToolNames = getEnabledToolNames();
     const helpBox = boxen(
-        `${chalk.gray('• Type your message and press Enter')}\n${chalk.gray('• AI has access to:')} ${enabledToolNames.length > 0 ? enabledToolNames.join(", ") : "No tools"}\n${chalk.gray('• Type "exit" to end conversation')}\n${chalk.gray('• Press Ctrl+C to quit anytime')}`,
+        `${chalk.gray('• Type your message and press Enter')}\n${chalk.gray('• AI has access to:')} ${enabledToolNames.length > 0 ? enabledToolNames.join(", ") : "No tools"}\n${chalk.gray('• Type "/tools" to switch tools without leaving')}\n${chalk.gray('• Type "exit" to end conversation')}\n${chalk.gray('• Press Ctrl+C to quit anytime')}`,
         {
             padding: 1,
             margin: { bottom: 1 },
@@ -320,6 +321,11 @@ async function chatLoop(conversation) {
             break;
         }
 
+        if (userInput.toLowerCase() === "/tools") {
+            await selectTools(true);
+            continue;
+        }
+
         const userBox = boxen(chalk.white(userInput), {
             padding: 1,
             margin: { left: 2, top: 1, bottom: 1 },
@@ -344,7 +350,7 @@ export async function startToolChat(conversationId = null) {
         process.stdout.write("\x1b[5 q");
 
         const title = gradient.cristal.multiline(`
-  Orbital AI
+  Orbital 
 `);
 
         const subtitle = chalk.cyan("Tool Calling Mode");
