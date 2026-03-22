@@ -1,4 +1,8 @@
 import { google } from '@ai-sdk/google';
+import { tool } from 'ai';
+import { z } from 'zod';
+import fs from 'fs/promises';
+import path from 'path';
 import chalk from 'chalk';
 
 /*
@@ -16,7 +20,7 @@ const log = {
 /*
  Available Google Generative AI tools
 */
-export const availableTools = [ 
+export const availableTools = [
     {
         id: 'google_search',
         name: 'Google Search',
@@ -39,6 +43,45 @@ export const availableTools = [
         description:
             'Fetch and analyze content from URLs provided in the prompt.',
         getTool: () => google.tools.urlContext({}),
+        enabled: false,
+    },
+    {
+        id: 'set_env_key',
+        name: 'API Key Storer',
+        description: 'Set or update an environment variable inside your local .env file in the current workspace directory.',
+        getTool: () => tool({
+            description: 'Store or update a key/value pair inside a local .env file securely.',
+            parameters: z.object({
+                key: z.string().describe('The name of the variable to set (e.g., SUPABASE_KEY, OPENAI_API_KEY)'),
+                value: z.string().describe('The value to save inside the .env file')
+            }),
+            execute: async ({ key, value }) => {
+                try {
+                    const envPath = path.join(process.cwd(), '.env');
+                    let content = '';
+                    try {
+                        content = await fs.readFile(envPath, 'utf-8');
+                    } catch (e) { /* file doesn't exist yet, start empty */ }
+
+                    const lines = content.split('\n');
+                    let found = false;
+                    const updatedLines = lines.map(line => {
+                        if (line.trim().startsWith(`${key}=`)) {
+                            found = true;
+                            return `${key}=${value}`; // update it
+                        }
+                        return line;
+                    });
+
+                    if (!found) updatedLines.push(`${key}=${value}`);
+
+                    await fs.writeFile(envPath, updatedLines.join('\n'));
+                    return { success: true, message: `Successfully stored ${key} in local .env file.` };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+        }),
         enabled: false,
     },
 ];
