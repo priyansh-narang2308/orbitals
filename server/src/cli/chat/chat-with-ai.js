@@ -63,7 +63,6 @@ async function getUserFromToken() {
 }
 
 async function initConversation(userId, conversationId = null, mode = "chat") {
-
     const spinner = yoctoSpinner({ text: "Loading conversation..." }).start();
 
     const conversation = await chatService.getOrCreateConversation(
