@@ -6,6 +6,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { startChat } from "../../chat/chat-with-ai.js";
 import { startToolChat } from "../../chat/chat-with-ai-tool.js";
+import { startAgentChat } from "../../chat/chat-with-ai-agent.js";
 
 const wakeupAction = async () => {
     const token = await getStoredToken();
@@ -58,9 +59,9 @@ const wakeupAction = async () => {
             case "tool":
                 await startToolChat();
                 break;
-            // case "agent":
-            //     await startAgentChat();
-            //     break;
+            case "agent":
+                await startAgentChat();
+                break;
             default:
                 console.log(chalk.red("Invalid choice."));
                 break;
