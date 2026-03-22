@@ -21,5 +21,8 @@ export const auth = betterAuth({
             expiresIn: "30m",
             interval: "5s"
         })
-    ]
+    ],
+    logger: {
+        level: "debug"
+    }
 });
