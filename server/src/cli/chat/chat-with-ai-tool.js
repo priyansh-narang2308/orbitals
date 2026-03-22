@@ -1,20 +1,24 @@
 import chalk from "chalk";
 import boxen from "boxen";
-
-import { text, isCancel, intro, outro } from "@clack/prompts";
+import gradient from "gradient-string"
 import yoctoSpinner from "yocto-spinner";
-
 import { marked } from "marked";
 import { markedTerminal } from "marked-terminal";
+import { text, isCancel, cancel, intro, outro, multiselect } from "@clack/prompts";
 
-import { AIService } from "../../services/gemini.service.js";
 import { ChatService } from "../../services/chat.service.js";
+import { AIService } from "../../services/gemini.service.js";
 
-import { getStoredToken } from "../../lib/token.js";
 import prisma from "../../lib/db.js";
-import gradient from "gradient-string";
+import {
+    availableTools,
+    getEnabledTools,
+    enableTools,
+    getEnabledToolNames,
+    resetTools
+} from "../../config/tool.config.js";
+import { getStoredToken } from "../../lib/token.js";
 
-// Configure marked to use terminal renderer (USED AI 😭)
 marked.use(
     markedTerminal({
         code: chalk.cyan,
@@ -34,12 +38,11 @@ marked.use(
     })
 );
 
-//service initiilize
 const aiService = new AIService();
 const chatService = new ChatService();
 
 async function getUserFromToken() {
-    const token = await getStoredToken();
+    const token = await getStoredToken()
     if (!token?.access_token) {
         throw new Error("Not authenticated. Please run 'orbital login' first.");
     }
@@ -63,35 +66,86 @@ async function getUserFromToken() {
     return user;
 }
 
-async function initConversation(userId, conversationId = null, mode = "chat") {
+async function selectTools() {
+    const toolOptions = availableTools.map(tool => ({
+        value: tool.id,
+        label: tool.name,
+        hint: tool.description,
+    }))
+
+    const sleectedTools = await multiselect({
+        message: chalk.cyan("Select tools to enable (Space to select, Enter to confirm):"),
+        options: toolOptions,
+        required: false,
+    })
+
+    if (isCancel(sleectedTools)) {
+        cancel(chalk.yellow("Tool selection cancelled"));
+        process.exit(0);
+    }
+
+    enableTools(sleectedTools)
+
+    if (sleectedTools.length === 0) {
+        console.log(chalk.yellow("\nNo tools selected. AI will work without tools.\n"));
+    } else {
+        const tools = sleectedTools
+            .map(id => {
+                const tool = availableTools.find(t => t.id === id);
+                return chalk.green(`  ✓ ${tool.name}`);
+            })
+            .join("\n");
+
+        const toolsBox = boxen(
+            chalk.green(`Enabled tools\n\n${tools}`),
+            {
+                padding: 1,
+                margin: { top: 1, bottom: 1 },
+                borderStyle: "round",
+                borderColor: "green",
+                title: "Activated Tools",
+                titleAlignment: "center"
+            }
+        );
+        console.log(toolsBox);
+    }
+    return sleectedTools.length > 0;
+}
+
+async function initConversation(userId, conversationId = null, mode = "tool") {
     const spinner = yoctoSpinner({ text: "Loading conversation..." }).start();
 
     const conversation = await chatService.getOrCreateConversation(
         userId,
         conversationId,
         mode
-    )
+    );
 
     spinner.success(`Conversation loaded: ${conversation.id}`);
 
-    //diplay conversation info in thebox
+    const enabledToolNames = getEnabledToolNames()
+    const toolsDisplay = enabledToolNames.length > 0
+        ? `\n${chalk.gray("Active Tools:")} ${enabledToolNames.join(", ")}`
+        : `\n${chalk.gray("No tools enabled")}`;
+
+    // Box of cobersation
     const conversationInfo = boxen(
-        `${chalk.bold("Conversation")}: ${conversation.title}\n${chalk.gray("ID: " + conversation.id)}\n${chalk.gray("Mode: " + conversation.mode)}`,
+        `${chalk.bold("Conversation")}: ${conversation.title}\n${chalk.gray("ID: " + conversation.id)}\n${chalk.gray("Mode: " + conversation.mode)}${toolsDisplay}`,
         {
             padding: 1,
             margin: { top: 1, bottom: 1 },
             borderStyle: "round",
             borderColor: "cyan",
-            title: "Chat Session",
+            title: "Tool Calling Session",
             titleAlignment: "center",
         }
     );
 
     console.log(conversationInfo);
 
-    // show exisiting messages
-    if (conversation.messages.length > 0) {
-        console.log(chalk.blue("\n--- Conversation History ---"));
+    //tp show existing messages if any
+    if (conversation.messages?.length > 0) {
+        console.log(chalk.yellow("Previous messages:\n"));
         displayMessages(conversation.messages);
     }
 
@@ -110,16 +164,14 @@ function displayMessages(messages) {
                 titleAlignment: "left",
             });
             console.log(userBox);
-        } else {
-            // md for assistant
+        } else if (msg.role === "assistant") {
             const renderedContent = marked.parse(msg.content);
             const assistantBox = boxen(renderedContent.trim(), {
                 padding: 1,
-                paddingTop: 2,
                 margin: { left: 2, bottom: 1 },
                 borderStyle: "round",
                 borderColor: "green",
-                title: "Assistant",
+                title: "Assistant (with tools)",
                 titleAlignment: "left",
             });
             console.log(assistantBox);
@@ -131,6 +183,7 @@ async function saveMessage(conversationId, role, content) {
     return await chatService.addMessage(conversationId, role, content);
 }
 
+
 async function getAIResponse(conversationId) {
     const spinner = yoctoSpinner({
         text: "AI is thinking...",
@@ -138,16 +191,60 @@ async function getAIResponse(conversationId) {
     }).start();
 
     const dbMessages = await chatService.getMessages(conversationId);
-    const aiMessages = chatService.formatMessagesForAI(dbMessages) //format those
+    const aiMessages = chatService.formatMessagesForAI(dbMessages);
+
+    const tools = getEnabledTools();
 
     let fullResponse = "";
+    const toolCallsDetected = [];
 
     try {
-        const result = await aiService.sendMessage(aiMessages, (chunk) => {
-            fullResponse += chunk;
-        });
+        const result = await aiService.sendMessage(
+            aiMessages,
+            (chunk) => {
+                fullResponse += chunk;
+            },
+            tools,
+            (toolCall) => {
+                toolCallsDetected.push(toolCall);
+            }
+        );
 
         spinner.stop();
+
+        // Display tool calls if any
+        if (toolCallsDetected.length > 0) {
+            const toolCallBox = boxen(
+                toolCallsDetected.map(tc =>
+                    `${chalk.cyan("Tool:")} ${tc.toolName}\n${chalk.gray("Args:")} ${JSON.stringify(tc.args, null, 2)}`
+                ).join("\n\n"),
+                {
+                    padding: 1,
+                    margin: { left: 2, top: 1, bottom: 1 },
+                    borderStyle: "round",
+                    borderColor: "cyan",
+                    title: "Tool Calls",
+                }
+            );
+            console.log(toolCallBox);
+        }
+
+        // Display tool results if any
+        if (result.toolResults && result.toolResults.length > 0) {
+            const toolResultBox = boxen(
+                result.toolResults.map(tr =>
+                    `${chalk.green("Tool:")} ${tr.toolName}\n${chalk.gray("Result:")} ${JSON.stringify(tr.result, null, 2).slice(0, 200)}...`
+                ).join("\n\n"),
+                {
+                    padding: 1,
+                    margin: { left: 2, top: 1, bottom: 1 },
+                    borderStyle: "round",
+                    borderColor: "green",
+                    title: "📊 Tool Results",
+                }
+            );
+            console.log(toolResultBox);
+        }
 
         // Render AI Answer in boxen to match user input boxen style
         const renderedMarkdown = marked.parse(fullResponse);
@@ -163,7 +260,7 @@ async function getAIResponse(conversationId) {
 
         return result.content;
     } catch (error) {
-        spinner.error("Failed to get response from AI");
+        spinner.error("Failed to get AI response");
         throw error;
     }
 }
@@ -176,8 +273,9 @@ async function updateConversationTitle(conversationId, userInput, messageCount) 
 }
 
 async function chatLoop(conversation) {
+    const enabledToolNames = getEnabledToolNames();
     const helpBox = boxen(
-        `${chalk.gray('• Type your message and press Enter')}\n${chalk.gray('• Markdown formatting is supported in responses')}\n${chalk.gray('• Type "exit" to end conversation')}\n${chalk.gray('• Press Ctrl+C to quit anytime')}`,
+        `${chalk.gray('• Type your message and press Enter')}\n${chalk.gray('• AI has access to:')} ${enabledToolNames.length > 0 ? enabledToolNames.join(", ") : "No tools"}\n${chalk.gray('• Type "exit" to end conversation')}\n${chalk.gray('• Press Ctrl+C to quit anytime')}`,
         {
             padding: 1,
             margin: { bottom: 1 },
@@ -222,18 +320,25 @@ async function chatLoop(conversation) {
             break;
         }
 
+        const userBox = boxen(chalk.white(userInput), {
+            padding: 1,
+            margin: { left: 2, top: 1, bottom: 1 },
+            borderStyle: "round",
+            borderColor: "blue",
+            title: "You",
+            titleAlignment: "left",
+        });
+        console.log(userBox);
+
         await saveMessage(conversation.id, "user", userInput);
         const messages = await chatService.getMessages(conversation.id);
         const aiResponse = await getAIResponse(conversation.id);
-
-        // save ai resp
         await saveMessage(conversation.id, "assistant", aiResponse);
         await updateConversationTitle(conversation.id, userInput, messages.length);
     }
 }
 
-export async function startChat(mode = "chat", conversationId = null) {
-
+export async function startToolChat(conversationId = null) {
     try {
         // Set cursor to blinking bar (line)
         process.stdout.write("\x1b[5 q");
@@ -242,7 +347,7 @@ export async function startChat(mode = "chat", conversationId = null) {
   Orbital AI
 `);
 
-        const subtitle = chalk.green("Conversation Mode");
+        const subtitle = chalk.cyan("Tool Calling Mode");
 
         intro(
             boxen(
@@ -251,17 +356,22 @@ export async function startChat(mode = "chat", conversationId = null) {
                     padding: { top: 1, bottom: 1, left: 4, right: 4 },
                     margin: 1,
                     borderStyle: "round",
-                    borderColor: "green",
+                    borderColor: "cyan",
                     align: "center"
                 }
             )
         );
-        const user = await getUserFromToken()
-        const conversation = await initConversation(user.id, conversationId, mode);
+
+        const user = await getUserFromToken();
+
+        await selectTools();
+
+        const conversation = await initConversation(user.id, conversationId, "tool");
         await chatLoop(conversation);
 
-        outro(chalk.green("Thanks for chatting. Have a good day!"));
+        resetTools();
 
+        outro(chalk.green("Thanks for using tools! See you later."));
     } catch (error) {
         const errorBox = boxen(chalk.red(`Error: ${error.message}`), {
             padding: 1,
@@ -270,6 +380,7 @@ export async function startChat(mode = "chat", conversationId = null) {
             borderColor: "red",
         });
         console.log(errorBox);
+        resetTools();
         process.exit(1);
     }
 }
