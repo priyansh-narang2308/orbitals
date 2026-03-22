@@ -54,7 +54,7 @@ export default function HistoryPage() {
 
         const fetchHistory = async () => {
             try {
-                const response = await fetch("http://localhost:3005/api/conversations", {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/conversations`, {
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -81,7 +81,7 @@ export default function HistoryPage() {
         e?.stopPropagation();
         setDeletingId(id);
         try {
-            const response = await fetch(`http://localhost:3005/api/conversations/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/conversations/${id}`, {
                 method: "DELETE",
                 credentials: "include"
             });
@@ -148,8 +148,8 @@ export default function HistoryPage() {
                                                 key={chat.id}
                                                 onClick={() => setSelectedConversation(chat)}
                                                 className={`p-2.5 rounded-lg cursor-pointer transition-all duration-150 border flex flex-col gap-1 relative group
-                                                    ${selectedConversation?.id === chat.id 
-                                                        ? 'bg-primary/10 border-primary/20 ring-1 ring-primary/10' 
+                                                    ${selectedConversation?.id === chat.id
+                                                        ? 'bg-primary/10 border-primary/20 ring-1 ring-primary/10'
                                                         : 'border-transparent hover:bg-muted/40'}`}
                                             >
                                                 <div className="flex items-center justify-between pr-7">
@@ -250,8 +250,8 @@ export default function HistoryPage() {
                                                             {msg.role === 'user' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
                                                         </div>
                                                         <div className={`p-2.5 rounded-xl text-[13px] leading-relaxed wrap-break-word shadow-sm
-                                                            ${msg.role === 'user' 
-                                                                ? 'bg-primary text-primary-foreground rounded-tr-none' 
+                                                            ${msg.role === 'user'
+                                                                ? 'bg-primary text-primary-foreground rounded-tr-none'
                                                                 : 'bg-card/80 border border-border/30 rounded-tl-none backdrop-blur-md'}`}
                                                         >
                                                             {msg.content}
