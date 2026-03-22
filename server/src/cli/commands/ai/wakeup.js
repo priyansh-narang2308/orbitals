@@ -4,6 +4,7 @@ import { getCachedUser } from "../../../lib/redis.js";
 import { select } from "@clack/prompts";
 import { Command } from "commander";
 import chalk from "chalk";
+import { startChat } from "../../chat/chat-with-ai.js";
 
 
 const wakeupAction = async () => {

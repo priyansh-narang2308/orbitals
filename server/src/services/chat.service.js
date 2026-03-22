@@ -43,7 +43,8 @@ export class ChatService {
         }
 
         // create a new conversaton if not found
-        return await this.createConversation(userId, mode);
+        const conversation = await this.createConversation(userId, mode);
+        return { ...conversation, messages: [] };
     }
 
     /**

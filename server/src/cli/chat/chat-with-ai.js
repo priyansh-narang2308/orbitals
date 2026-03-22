@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import boxen from "boxen";
 
-import { text, isCancel, cancel, intro, outro } from "@clack/prompts";
+import { text, isCancel, intro, outro } from "@clack/prompts";
 import yoctoSpinner from "yocto-spinner";
 
 import { marked } from "marked";
@@ -114,6 +114,7 @@ function displayMessages(messages) {
             const renderedContent = marked.parse(msg.content);
             const assistantBox = boxen(renderedContent.trim(), {
                 padding: 1,
+                paddingTop: 2,
                 margin: { left: 2, bottom: 1 },
                 borderStyle: "round",
                 borderColor: "green",
@@ -146,7 +147,6 @@ async function getAIResponse(conversationId) {
             // stop spinner
             if (isFirstChunk) {
                 spinner.stop();
-                console.log("\n");
                 const header = chalk.green.bold("Assistant:");
                 console.log(header);
                 console.log(chalk.gray("─".repeat(60)));
@@ -156,11 +156,9 @@ async function getAIResponse(conversationId) {
         });
 
         // output the response
-        console.log("\n");
         const renderedMarkdown = marked.parse(fullResponse);
-        console.log(renderedMarkdown);
+        console.log(renderedMarkdown.trim());
         console.log(chalk.gray("─".repeat(60)));
-        console.log("\n");
 
         return result.content;
     } catch (error) {
@@ -237,13 +235,17 @@ export async function startChat(mode = "chat", conversationId = null) {
 
     try {
         intro(
-            boxen(chalk.bold.cyan("Orbital Chat"), {
-                padding: 1,
-                borderStyle: "double",
-                borderColor: "cyan",
-            })
+            boxen(
+                chalk.cyan.bold("  Orbital Chat  "),
+                {
+                    padding: { top: 1, bottom: 1, left: 4, right: 4 },
+                    margin: 1,
+                    borderStyle: "round",
+                    borderColor: "cyan",
+                    textAlignment: "center"
+                }
+            )
         );
-
         const user = await getUserFromToken()
         const conversation = await initConversation(user.id, conversationId, mode);
         await chatLoop(conversation);
