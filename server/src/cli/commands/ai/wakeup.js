@@ -5,7 +5,7 @@ import { select } from "@clack/prompts";
 import { Command } from "commander";
 import chalk from "chalk";
 import { startChat } from "../../chat/chat-with-ai.js";
-
+import { startToolChat } from "../../chat/chat-with-ai-tool.js";
 
 const wakeupAction = async () => {
     const token = await getStoredToken();
@@ -55,9 +55,9 @@ const wakeupAction = async () => {
             case "chat":
                 await startChat("chat");
                 break;
-            // case "tool":
-            //     await startToolChat();
-            //     break;
+            case "tool":
+                await startToolChat();
+                break;
             // case "agent":
             //     await startAgentChat();
             //     break;
@@ -72,5 +72,5 @@ const wakeupAction = async () => {
 }
 
 export const wakeup = new Command("wakeup")
-    .description("Wake up Orbit AI")
+    .description("Boot the Orbit AI engine")
     .action(wakeupAction)
