@@ -51,7 +51,7 @@ export const availableTools = [
         description: 'Set or update an environment variable inside your local .env file in the current workspace directory.',
         getTool: () => tool({
             description: 'Store or update a key/value pair inside a local .env file securely.',
-            parameters: z.object({
+            inputSchema: z.object({
                 key: z.string().describe('The name of the variable to set (e.g., SUPABASE_KEY, OPENAI_API_KEY)'),
                 value: z.string().describe('The value to save inside the .env file')
             }),

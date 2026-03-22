@@ -247,17 +247,19 @@ async function getAIResponse(conversationId) {
             console.log(toolResultBox);
         }
 
-        // Render AI Answer in boxen to match user input boxen style
-        const renderedMarkdown = marked.parse(fullResponse);
-        const assistantBox = boxen(renderedMarkdown.trim(), {
-            padding: 1,
-            margin: { left: 2, top: 1, bottom: 1 },
-            borderStyle: "round",
-            borderColor: "green",
-            title: "Assistant",
-            titleAlignment: "left",
-        });
-        console.log(assistantBox);
+        // Render AI Answer in boxen if there is content
+        if (fullResponse.trim()) {
+            const renderedMarkdown = marked.parse(fullResponse);
+            const assistantBox = boxen(renderedMarkdown.trim(), {
+                padding: 1,
+                margin: { left: 2, top: 1, bottom: 1 },
+                borderStyle: "round",
+                borderColor: "green",
+                title: "Assistant",
+                titleAlignment: "left",
+            });
+            console.log(assistantBox);
+        }
 
         return result.content;
     } catch (error) {
