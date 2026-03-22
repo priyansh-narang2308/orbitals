@@ -32,6 +32,7 @@ export class AIService {
                 maxTokens: config.maxTokens,
             }
 
+            // for tool calling
             if (tools && Object.keys(tools).length > 0) {
                 streamConfiguration.tools = tools;
                 streamConfiguration.maxSteps = 5; //upto 5 tool calls
@@ -60,6 +61,7 @@ export class AIService {
                 for (const step of fullResult.steps) {
                     if (step.toolCalls && step.toolCalls.length > 0) {
                         for (const toolCall of step.toolCalls) {
+                            // push the toolCalls for working
                             toolCalls.push(toolCall);
                             if (onToolCall) {
                                 onToolCall(toolCall);
