@@ -10,6 +10,8 @@ import { login } from "./commands/auth/login.js";
 import { logout } from "./commands/auth/logout.js";
 import { whoami } from "./commands/auth/whoami.js";
 
+import { wakeup } from "./commands/ai/wakeup.js";
+
 dotenv.config();
 
 async function main() {
@@ -17,7 +19,7 @@ async function main() {
 
     program
         .version("1.0.0", "-v, --version", "Show Orbital CLI version")
-        .description("AI-powered developer assistant for your terminal");
+        .description(" AI-powered developer assistant for your terminal");
 
     program.configureHelp({
         styleTitle: (text) => chalk.bold.cyan(text),
@@ -28,7 +30,7 @@ async function main() {
         styleCommandDescription: (text) => chalk.gray(text),
     });
 
-    // program.addCommand(wakeup)
+    program.addCommand(wakeup)
     program.addCommand(login);
     program.addCommand(logout);
     program.addCommand(whoami);
