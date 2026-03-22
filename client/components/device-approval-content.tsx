@@ -41,12 +41,9 @@ const DeviceApprovalContent = () => {
     const handleApprove = async () => {
         setIsProcessing({ approve: true, deny: false });
         try {
-            toast.loading("Authenticating terminal...", { id: "loading" });
             await authClient.device.approve({ userCode: userCode! });
-            toast.dismiss("loading");
             router.push("/device/success");
         } catch {
-            toast.dismiss("loading");
             toast.error("Failed to approve device");
             setIsProcessing({ approve: false, deny: false });
         }
