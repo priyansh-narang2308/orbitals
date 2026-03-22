@@ -48,6 +48,24 @@ app.get("/api/conversations", async (req, res) => {
     }
 });
 
+app.get("/api/me", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers),
+        });
+
+        if (!session) {
+            return res.status(401).json({ error: "No active session" });
+        }
+
+        return res.json(session);
+    } catch (error) {
+        console.error("Session error:", error);
+        return res.status(500).json({ error: "Failed to get session", details: error.message });
+    }
+});
+
+
 // Delete Conversation Endpoint
 app.delete("/api/conversations/:id", async (req, res) => {
     try {
