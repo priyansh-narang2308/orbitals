@@ -3,7 +3,8 @@ import dotenv from "dotenv"
 import cors from "cors"
 
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./lib/auth.js"
+import { auth } from "./lib/auth.js";
+import prisma from "./lib/db.js";
 
 dotenv.config()
 
@@ -19,6 +20,59 @@ app.use(cors({
 
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(express.json());
+
+
+app.get("/api/conversations", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({
+            headers: req.headers,
+        });
+
+        if (!session?.user) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const conversations = await prisma.conversation.findMany({
+            where: { userId: session.user.id },
+            orderBy: { updatedAt: "desc" },
+            include: {
+                messages: {
+                    orderBy: { createdAt: "asc" }
+                }
+            }
+        });
+
+        res.json(conversations);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+});
+
+// Delete Conversation Endpoint
+app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({
+            headers: req.headers,
+        });
+
+        if (!session?.user) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const conversationId = req.params.id;
+
+        await prisma.conversation.deleteMany({
+            where: {
+                id: conversationId,
+                userId: session.user.id
+            }
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete conversation" });
+    }
+});
 
 // Using queries for redirecting
 app.get("/device", async (req, res) => {
