@@ -72,7 +72,7 @@ async function createApplicationFiles(baseDir, folderName, files) {
 // generate the application
 export async function generateApplication(description, aiService, cwd = process.cwd()) {
     try {
-        printSystem(chalk.cyan('\nAgent Mode: Generating your application...\n'));
+        printSystem(chalk.cyan('\nAgent Mode: Generating your application...'));
         printSystem(chalk.gray(`Request: ${description}\n`));
 
         printSystem(chalk.magenta('Generating structured output...\n'));

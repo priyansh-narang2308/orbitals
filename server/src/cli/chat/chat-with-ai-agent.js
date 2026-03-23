@@ -178,7 +178,7 @@ async function agentLoop(conversation) {
 export async function startAgentChat(conversationId = null) {
     try {
         const title = gradient.cristal.multiline(`
-                        Orbital
+Orbital
                         `);
 
         const subtitle = chalk.green("Agent Mode");
