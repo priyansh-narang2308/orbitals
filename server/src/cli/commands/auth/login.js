@@ -15,7 +15,7 @@ import { getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.j
 
 dotenv.config();
 
-export const DEMO_URL = "https://site--orbital--khcfwlpsmtj4.code.run";
+export const DEMO_URL = "http://localhost:3005";
 export const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 export const CONFIG_DIR = path.join(os.homedir(), ".orbital");
 export const TOKEN_FILE = path.join(CONFIG_DIR, "token.json");
@@ -102,9 +102,7 @@ export async function loginAction(opts) {
             expires_in,
         } = data;
 
-        const urlToOpen = (verification_uri_complete || verification_uri)
-            .replace("site--orbital--khcfwlpsmtj4.code.run", "orbitalcli.vercel.app")
-            .replace("3005", "3000"); // for local dev backwards compatibility
+        const urlToOpen = (verification_uri_complete || verification_uri).replace("3005", "3000");
 
         console.log("");
         console.log(chalk.cyan("Device Authorization Required"));
