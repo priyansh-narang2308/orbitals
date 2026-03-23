@@ -30,7 +30,7 @@
     "express": "^5.2.1",
     "figlet": "^1.11.0",
     "gradient-string": "^3.0.0",
-    "marked": "^17.0.5",
+    "marked": "^15.0.0",
     "marked-terminal": "^7.3.0",
     "open": "^11.0.0",
     "prisma": "^6.19.0",
