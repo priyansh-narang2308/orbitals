@@ -3,7 +3,7 @@ import { Command } from "commander";
 import prisma from "../../../lib/db.js";
 import { requireAuth } from "../../../lib/token.js";
 
-const DEMO_URL = "http://localhost:3005";
+const DEMO_URL = "https://site--orbital--khcfwlpsmtj4.code.run";
 
 // WhoAmI
 export async function whoamiAction(opts) {
