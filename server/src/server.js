@@ -1,6 +1,7 @@
 import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
+import https from "https"
 
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
@@ -13,7 +14,7 @@ const PORT = process.env.PORT || 3005
 
 // CORS configuration
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }))
@@ -103,7 +104,20 @@ app.get("/health", (req, res) => {
 
 if (process.env.NODE_ENV !== "test") {
     app.listen(PORT, () => {
-        console.log(`Server is running on port: ${PORT}`)
+        console.log(`Server is running on port: ${PORT}`);
+
+        // Keep-alive mechanism for Render free tier
+        const SERVER_URL = process.env.SERVER_URL;
+        if (SERVER_URL) {
+            console.log(`Self-pinging enabled for: ${SERVER_URL}`);
+            setInterval(() => {
+                https.get(`${SERVER_URL}/health`, (res) => {
+                    console.log(`Self-ping status: ${res.statusCode}`);
+                }).on('error', (err) => {
+                    console.error(`Self-ping failed: ${err.message}`);
+                });
+            }, 14 * 60 * 1000); // 14 minutes
+        }
     });
 }
 

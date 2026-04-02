@@ -15,7 +15,8 @@ import { getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.j
 
 dotenv.config();
 
-export const DEMO_URL = "http://localhost:3005";
+export const DEFAULT_SERVER_URL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
+export const DEFAULT_FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 export const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 export const CONFIG_DIR = path.join(os.homedir(), ".orbital");
 export const TOKEN_FILE = path.join(CONFIG_DIR, "token.json");
@@ -30,7 +31,7 @@ export async function loginAction(opts) {
         })
         .parse(opts);
 
-    const serverUrl = options.serverUrl || DEMO_URL;
+    const serverUrl = options.serverUrl || DEFAULT_SERVER_URL;
     const clientId = options.clientId || CLIENT_ID;
 
     intro(chalk.italic.blue("Orbital CLI Login"));
@@ -102,7 +103,7 @@ export async function loginAction(opts) {
             expires_in,
         } = data;
 
-        const urlToOpen = (verification_uri_complete || verification_uri).replace("3005", "3000");
+        const urlToOpen = (verification_uri_complete || verification_uri).replace(serverUrl, DEFAULT_FRONTEND_URL);
 
         console.log("");
         console.log(chalk.cyan("Device Authorization Required"));
@@ -253,6 +254,6 @@ async function pollForToken(authClient, deviceCode, clientId, initialInterval) {
 // Commandar
 export const login = new Command("login")
     .description("Login to Orbital CLI")
-    .option("--server-url <url>", "The Better Auth server URL", DEMO_URL)
+    .option("--server-url <url>", "The Better Auth server URL", DEFAULT_SERVER_URL)
     .option("--client-id <id>", "The OAuth client ID", CLIENT_ID)
     .action(loginAction);
