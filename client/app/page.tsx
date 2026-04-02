@@ -43,9 +43,9 @@ const HomePage = () => {
 
   useEffect(() => {
     if (!isPending && !session) {
-      router.push("/sign-in")
+      window.location.href = "/sign-in";
     }
-  }, [session, isPending, router])
+  }, [session, isPending]);
 
   if (isPending || !session) {
     return (

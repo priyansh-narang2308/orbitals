@@ -1,7 +1,6 @@
 "use client"
 
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card"
 import { Button } from "../ui/button"
@@ -11,16 +10,16 @@ import { Loader } from "../ui/loader"
 
 const LoginForm = () => {
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
     const { data: session, isPending } = authClient.useSession()
 
     useEffect(() => {
-        if (session) {
+        if (session && !isPending) {
             const params = new URLSearchParams(window.location.search);
             const callbackURL = params.get("callbackURL") || "/";
-            router.push(callbackURL);
+            console.log("Session detected, forcing redirect to:", callbackURL);
+            window.location.href = callbackURL;
         }
-    }, [session, router])
+    }, [session, isPending])
 
     if (isPending || session) {
         return (
@@ -36,11 +35,12 @@ const LoginForm = () => {
         try {
             setLoading(true)
             const params = new URLSearchParams(window.location.search);
-            const callbackURL = params.get("callbackURL") || "http://localhost:3000";
+            const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+            const callbackURL = params.get("callbackURL") || "/";
 
             await authClient.signIn.social({
                 provider: "github",
-                callbackURL: callbackURL.startsWith("http") ? callbackURL : `http://localhost:3000${callbackURL}`
+                callbackURL: callbackURL.startsWith("http") ? callbackURL : `${frontendUrl}${callbackURL}`
             })
         } catch (error) {
             console.error("Login Error:", error)
